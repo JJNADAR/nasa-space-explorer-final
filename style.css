@@ -1,24 +1,25 @@
-/* Global reset & box sizing */
+/* global reset */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* Base page styles */
+/* the nasa vibe haha */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f1f1f1;
+  background: radial-gradient(circle at top, #0b0f2f, #050816);
+  color: white;
   padding: 20px;
 }
 
-/* Centered container */
+/* centered container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Header */
+/* header */
 .site-header {
   display: flex;
   align-items: center;
@@ -31,16 +32,17 @@ body {
 h1 {
   font-family: Verdana, sans-serif;
   font-weight: bold;
-  color: #212121;
+  color: white;
+  letter-spacing: 1px;
 }
 
-/* Logo */
+/* logo */
 .logo {
   width: 140px;
   margin-right: 15px;
 }
 
-/* Date‐picker & button row */
+/* filters */
 .filters {
   display: flex;
   flex-direction: column;
@@ -50,95 +52,155 @@ h1 {
   padding: 0 20px;
 }
 
-/* Inputs and buttons */
+/* Inputs AND da button */
 input[type="date"],
 button {
   font-family: Arial, sans-serif;
-  font-weight: normal;
-  color: #666;
   padding: 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 16px;
-  line-height: 1.4;
   width: 100%;
+  border: none;
 }
 
-/* Button specific */
+/* inputs */
+input[type="date"] {
+  background: #1a1f4f;
+  color: white;
+}
+
+/* button */
 button {
-  background-color: #d3d3d3;
+  background-color: #ffcc00;
   color: black;
   cursor: pointer;
-}
-button:hover {
-  background-color: #bfbfbf;
+  font-weight: bold;
+  transition: 0.2s;
 }
 
-/* Stack horizontally on wider screens */
+button:hover {
+  background-color: #e6b800;
+}
+
+/* responsive layout */
 @media (min-width: 600px) {
   .filters {
     flex-direction: row;
     padding: 0;
   }
-  
+
   input[type="date"],
   button {
     width: auto;
   }
 }
 
-/* Gallery flex container */
+
+
+
 .gallery {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
   padding: 20px;
-  justify-content: center;
 }
 
-/* Gallery items */
+/* gallery card */
 .gallery-item {
-  flex: 1 1 100%;  /* full width by default */
-  min-width: 280px;
-  max-width: 500px;
-  background: white;
+  background: #1a1f4f;
   padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border-radius: 10px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: transform 0.3s ease;
 }
 
-/* Three columns on wider screens */
-@media (min-width: 1000px) {
-  .gallery-item {
-    flex: 0 1 31%;
-  }
+/* hover zzoom for my level up */
+.gallery-item:hover {
+  transform: scale(1.05);
 }
 
+/* my imgages */
 .gallery-item img {
   width: 100%;
   height: 200px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
+/* text */
 .gallery-item p {
   margin-top: 10px;
-  padding: 5px;
   font-size: 14px;
+  color: #ddd;
 }
 
-/* Placeholder content */
+
+
 .placeholder {
-  flex: 1 1 100%;
   text-align: center;
-  padding: 40px;
-  color: #666;
+  padding: 60px 20px;
+  color: #aaa;
 }
 
 .placeholder-icon {
-  font-size: 48px;
-  margin-bottom: 20px;
+  font-size: 50px;
+  margin-bottom: 15px;
+}
+
+
+
+.loading {
+  text-align: center;
+  font-size: 18px;
+  color: #ffcc00;
+}
+
+
+
+.fact-box {
+  grid-column: 1 / -1;
+  background: #222a66;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  color: white;
+}
+
+
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #11162e;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 700px;
+  color: white;
+}
+
+.modal-content img {
+  width: 100%;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.close {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+  color: #ffcc00;
 }
