@@ -28,7 +28,7 @@ function showFact() {
   gallery.prepend(factBox);
 }
 
-// ---------------- FETCH NASA (SIMPLE + RELIABLE) ----------------
+// ---------------- FETCH NASA (FIXED FINAL VERSION) ----------------
 async function fetchNASA(start, end) {
   try {
     showLoading();
@@ -38,19 +38,24 @@ async function fetchNASA(start, end) {
     const res = await fetch(url);
     const data = await res.json();
 
-    console.log("NASA response:", data);
+    console.log("NASA RESPONSE:", data);
 
-    if (!Array.isArray(data)) {
-      gallery.innerHTML = `<p class="loading">NASA returned unexpected data. Try different dates.</p>`;
+    // handle API errors
+    if (data.code || data.error) {
+      gallery.innerHTML = `<p class="loading">NASA API error: ${data.msg || "Try different dates"}</p>`;
       return;
     }
 
-    const images = data.filter(item =>
+    // normalize response (array OR single object)
+    const items = Array.isArray(data) ? data : [data];
+
+    // filter only images
+    const images = items.filter(item =>
       item.media_type === "image" && item.url
     );
 
     if (images.length === 0) {
-      gallery.innerHTML = `<p class="loading">No images found. Try another date range.</p>`;
+      gallery.innerHTML = `<p class="loading">No images found for this date range. Try different dates.</p>`;
       return;
     }
 
@@ -59,7 +64,7 @@ async function fetchNASA(start, end) {
 
   } catch (err) {
     console.error(err);
-    gallery.innerHTML = `<p class="loading">Error loading NASA data.</p>`;
+    gallery.innerHTML = `<p class="loading">Network error loading NASA data.</p>`;
   }
 }
 
@@ -104,7 +109,7 @@ function openModal(item) {
   document.body.appendChild(modal);
 }
 
-// ---------------- BUTTON ----------------
+// ---------------- BUTTON CLICK ----------------
 button.addEventListener("click", () => {
   const start = startDateInput.value;
   const end = endDateInput.value;
