@@ -6,12 +6,12 @@ const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
 const button = document.querySelector("button");
 
-// -------------------- LOADING --------------------
+// ---------------- LOADING ----------------
 function showLoading() {
   gallery.innerHTML = `<p class="loading">Loading space images...</p>`;
 }
 
-// -------------------- SPACE FACT --------------------
+// ---------------- SPACE FACT ----------------
 function showFact() {
   const facts = [
     "One day on Venus is longer than one year on Venus.",
@@ -29,56 +29,66 @@ function showFact() {
   gallery.prepend(factBox);
 }
 
-// -------------------- FETCH NASA --------------------
+// ---------------- FETCH NASA (FIXED) ----------------
 async function fetchNASA(start, end) {
   try {
     showLoading();
 
-    const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&start_date=${start}&end_date=${end}`;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
 
-    const res = await fetch(url);
-    const data = await res.json();
+    const results = [];
 
-    const items = Array.isArray(data) ? data : [data];
+    // fetch each day individually (fixes empty-range bug)
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const date = d.toISOString().split("T")[0];
 
-    // ONLY valid images
-    const images = items.filter(item => item.media_type === "image" && item.url);
+      const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&date=${date}`;
 
-    if (!images.length) {
+      const res = await fetch(url);
+      const data = await res.json();
+
+      // only keep valid images
+      if (data && data.media_type === "image" && data.url) {
+        results.push(data);
+      }
+    }
+
+    if (results.length === 0) {
       gallery.innerHTML = `<p class="loading">No images found. Try a different date range.</p>`;
       return;
     }
 
-    renderGallery(images.slice(0, 9));
+    renderGallery(results.slice(0, 9));
     showFact();
 
   } catch (err) {
     console.error(err);
-    gallery.innerHTML = `<p class="loading">Failed to load NASA data.</p>`;
+    gallery.innerHTML = `<p class="loading">Error loading NASA data.</p>`;
   }
 }
 
-// -------------------- RENDER GALLERY --------------------
+// ---------------- RENDER GALLERY ----------------
 function renderGallery(items) {
   gallery.innerHTML = "";
 
-  items.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "gallery-item";
+  items.forEach((item) => {
+    const div = document.createElement("div");
+    div.className = "gallery-item";
 
-    card.innerHTML = `
+    div.innerHTML = `
       <img src="${item.url}" alt="${item.title}">
       <p><strong>${item.title}</strong></p>
       <p>${item.date}</p>
     `;
 
-    card.addEventListener("click", () => openModal(item));
+    div.addEventListener("click", () => openModal(item));
 
-    gallery.appendChild(card);
+    gallery.appendChild(div);
   });
 }
 
-// -------------------- MODAL --------------------
+// ---------------- MODAL ----------------
 function openModal(item) {
   const modal = document.createElement("div");
   modal.className = "modal";
@@ -99,7 +109,7 @@ function openModal(item) {
   document.body.appendChild(modal);
 }
 
-// -------------------- BUTTON --------------------
+// ---------------- BUTTON CLICK ----------------
 button.addEventListener("click", () => {
   const start = startDateInput.value;
   const end = endDateInput.value;
