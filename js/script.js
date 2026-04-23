@@ -10,7 +10,7 @@ function showLoading() {
   gallery.innerHTML = `<p class="loading">Loading space images...</p>`;
 }
 
-/* ---------------- FACT ---------------- */
+/* ---------------- SPACE FACT ---------------- */
 function showFact() {
   const facts = [
     "One day on Venus is longer than one year on Venus.",
@@ -31,42 +31,35 @@ function showFact() {
   gallery.prepend(factBox);
 }
 
-/* ---------------- FETCH NASA (FIXED RELIABLE VERSION) ---------------- */
+/* ---------------- FETCH NASA ---------------- */
 async function fetchNASA(start, end) {
   try {
     showLoading();
 
-    const startDate = new Date(start);
-    const endDate = new Date(end);
+    const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&start_date=${start}&end_date=${end}`;
 
-    let results = [];
+    const res = await fetch(url);
+    const data = await res.json();
 
-    // Fetch each day individually (most reliable NASA method)
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split("T")[0];
+    console.log("NASA response:", data);
 
-      const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&date=${dateStr}`;
+    const items = Array.isArray(data) ? data : [data];
 
-      const res = await fetch(url);
-      const data = await res.json();
+    const images = items.filter(item =>
+      item && item.media_type === "image" && item.url
+    );
 
-      // Only keep images
-      if (data && data.media_type === "image" && data.url) {
-        results.push(data);
-      }
-    }
-
-    if (results.length === 0) {
-      gallery.innerHTML = `<p class="loading">No images found for this date range.</p>`;
+    if (images.length === 0) {
+      gallery.innerHTML = `<p class="loading">No images found for this date range. Try different dates.</p>`;
       return;
     }
 
-    renderGallery(results.slice(0, 9));
+    renderGallery(images.slice(0, 9));
     showFact();
 
   } catch (err) {
     console.error(err);
-    gallery.innerHTML = `<p class="loading">Failed to load space images.</p>`;
+    gallery.innerHTML = `<p class="loading">Failed to load NASA images.</p>`;
   }
 }
 
