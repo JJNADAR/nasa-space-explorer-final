@@ -5,16 +5,16 @@ const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
 const button = document.querySelector("button");
 
-// loading state
+// loading
 function showLoading() {
   gallery.innerHTML = `
     <div class="placeholder">
-      <p>🔄 Loading space photos...</p>
+      <p>🔄 Loading space images...</p>
     </div>
   `;
 }
 
-// random fact (LevelUp)
+// random fact
 function showFact() {
   const facts = [
     "One day on Venus is longer than one year on Venus.",
@@ -26,16 +26,16 @@ function showFact() {
   const fact = facts[Math.floor(Math.random() * facts.length)];
 
   const box = document.createElement("div");
-  box.className = "gallery-item";
+  box.className = "fact-box";
   box.innerHTML = `
-    <p><strong>Did You Know?</strong></p>
+    <strong>Did You Know?</strong>
     <p>${fact}</p>
   `;
 
   gallery.prepend(box);
 }
 
-// fetch NASA data
+// fetch NASA
 async function fetchNASA(start, end) {
   try {
     showLoading();
@@ -66,7 +66,7 @@ function renderGallery(items) {
     div.className = "gallery-item";
 
     div.innerHTML = `
-      <img src="${item.url}" alt="${item.title}" />
+      <img src="${item.url}" alt="${item.title}">
       <p><strong>${item.title}</strong></p>
       <p>${item.date}</p>
     `;
@@ -87,14 +87,18 @@ function openModal(item) {
       <span class="close">&times;</span>
       <h2>${item.title}</h2>
       <p>${item.date}</p>
-      <img src="${item.url}" style="max-width:100%; margin-top:10px;" />
-      <p style="margin-top:10px;">${item.explanation}</p>
+      <img src="${item.url}" />
+      <p>${item.explanation}</p>
     </div>
   `;
 
   document.body.appendChild(modal);
 
   modal.querySelector(".close").onclick = () => modal.remove();
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.remove();
+  });
 }
 
 // button click
