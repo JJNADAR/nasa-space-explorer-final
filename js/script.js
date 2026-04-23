@@ -31,24 +31,37 @@ function showFact() {
   gallery.prepend(factBox);
 }
 
-/* ---------------- FETCH NASA ---------------- */
+/* ---------------- FETCH NASA (FIXED RELIABLE VERSION) ---------------- */
 async function fetchNASA(start, end) {
   try {
     showLoading();
 
-    const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&start_date=${start}&end_date=${end}`;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
 
-    const res = await fetch(url);
-    const data = await res.json();
+    let results = [];
 
-    console.log("NASA DATA:", data);
+    // Fetch each day individually (most reliable NASA method)
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split("T")[0];
 
-    const items = Array.isArray(data) ? data : [data];
+      const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&date=${dateStr}`;
 
-    /* FIX: don’t over-filter (this was causing empty results) */
-    const images = items.filter(item => item && item.url);
+      const res = await fetch(url);
+      const data = await res.json();
 
-    renderGallery(images.slice(0, 9));
+      // Only keep images
+      if (data && data.media_type === "image" && data.url) {
+        results.push(data);
+      }
+    }
+
+    if (results.length === 0) {
+      gallery.innerHTML = `<p class="loading">No images found for this date range.</p>`;
+      return;
+    }
+
+    renderGallery(results.slice(0, 9));
     showFact();
 
   } catch (err) {
@@ -61,24 +74,14 @@ async function fetchNASA(start, end) {
 function renderGallery(items) {
   gallery.innerHTML = "";
 
-  if (!items.length) {
-    gallery.innerHTML = `<p class="loading">No images found for this date range. Try different dates.</p>`;
-    return;
-  }
-
   items.forEach((item) => {
     const div = document.createElement("div");
     div.className = "gallery-item";
 
-    const media =
-      item.media_type === "video"
-        ? `<iframe src="${item.url}"></iframe>`
-        : `<img src="${item.url}" alt="${item.title}">`;
-
     div.innerHTML = `
-      ${media}
-      <p><strong>${item.title || "No title"}</strong></p>
-      <p>${item.date || ""}</p>
+      <img src="${item.url}" alt="${item.title}">
+      <p><strong>${item.title}</strong></p>
+      <p>${item.date}</p>
     `;
 
     div.addEventListener("click", () => openModal(item));
@@ -96,10 +99,10 @@ function openModal(item) {
   modal.innerHTML = `
     <div class="modal-content">
       <span class="close-modal">&times;</span>
-      <h2>${item.title || ""}</h2>
-      <p>${item.date || ""}</p>
-      <img src="${item.url || ""}" />
-      <p>${item.explanation || ""}</p>
+      <h2>${item.title}</h2>
+      <p>${item.date}</p>
+      <img src="${item.url}" alt="${item.title}">
+      <p>${item.explanation}</p>
     </div>
   `;
 
