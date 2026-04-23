@@ -5,12 +5,12 @@ const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
 const button = document.querySelector("button");
 
-/* Loading */
+/* ---------------- LOADING ---------------- */
 function showLoading() {
   gallery.innerHTML = `<p class="loading">Loading space images...</p>`;
 }
 
-/* Random fact */
+/* ---------------- FACT ---------------- */
 function showFact() {
   const facts = [
     "One day on Venus is longer than one year on Venus.",
@@ -22,7 +22,7 @@ function showFact() {
   const fact = facts[Math.floor(Math.random() * facts.length)];
 
   const factBox = document.createElement("div");
-  factBox.className = "fact-box";
+  factBox.className = "space-fact";
   factBox.innerHTML = `
     <strong>Did You Know?</strong>
     <p>${fact}</p>
@@ -31,7 +31,7 @@ function showFact() {
   gallery.prepend(factBox);
 }
 
-/* Fetch NASA data */
+/* ---------------- FETCH NASA ---------------- */
 async function fetchNASA(start, end) {
   try {
     showLoading();
@@ -45,7 +45,6 @@ async function fetchNASA(start, end) {
 
     const items = Array.isArray(data) ? data : [data];
 
-    // only keep images (avoids broken video entries)
     const images = items.filter(item => item.media_type === "image");
 
     renderGallery(images.slice(0, 9));
@@ -57,29 +56,55 @@ async function fetchNASA(start, end) {
   }
 }
 
-/* Render gallery */
+/* ---------------- RENDER GALLERY ---------------- */
 function renderGallery(items) {
   gallery.innerHTML = "";
 
+  if (!items.length) {
+    gallery.innerHTML = `<p class="loading">No images found for this date range.</p>`;
+    return;
+  }
+
   items.forEach((item) => {
     const div = document.createElement("div");
-    div.className = "card";
-
-    const img = item.url || "";
-    const title = item.title || "No title available";
-    const date = item.date || "";
+    div.className = "gallery-item";
 
     div.innerHTML = `
-      <img src="${img}" alt="${title}">
-      <h3>${title}</h3>
-      <p>${date}</p>
+      <img src="${item.url}" alt="${item.title}">
+      <p><strong>${item.title}</strong></p>
+      <p>${item.date}</p>
     `;
+
+    div.addEventListener("click", () => openModal(item));
 
     gallery.appendChild(div);
   });
 }
 
-/* Button click */
+/* ---------------- MODAL ---------------- */
+function openModal(item) {
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.style.display = "flex";
+
+  modal.innerHTML = `
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>${item.title}</h2>
+      <p>${item.date}</p>
+      <img src="${item.url}" alt="${item.title}">
+      <p>${item.explanation}</p>
+    </div>
+  `;
+
+  modal.querySelector(".close-modal").addEventListener("click", () => {
+    modal.remove();
+  });
+
+  document.body.appendChild(modal);
+}
+
+/* ---------------- BUTTON CLICK ---------------- */
 button.addEventListener("click", () => {
   const start = startDateInput.value;
   const end = endDateInput.value;
