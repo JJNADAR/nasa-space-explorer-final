@@ -28,7 +28,7 @@ function showFact() {
   gallery.prepend(factBox);
 }
 
-// ---------------- FETCH NASA (FIXED FINAL VERSION) ----------------
+// ---------------- FETCH NASA (OPTION 2 SAFE VERSION) ----------------
 async function fetchNASA(start, end) {
   try {
     showLoading();
@@ -40,22 +40,28 @@ async function fetchNASA(start, end) {
 
     console.log("NASA RESPONSE:", data);
 
-    // handle API errors
-    if (data.code || data.error) {
-      gallery.innerHTML = `<p class="loading">NASA API error: ${data.msg || "Try different dates"}</p>`;
+    // HANDLE API ERROR RESPONSE
+    if (!Array.isArray(data)) {
+      gallery.innerHTML = `
+        <p class="loading">
+          NASA API limit reached or invalid response.<br>
+          Try a smaller date range or wait a moment.
+        </p>
+      `;
       return;
     }
 
-    // normalize response (array OR single object)
-    const items = Array.isArray(data) ? data : [data];
+    // FILTER ONLY IMAGES
+    const images = data.filter(item => item.media_type === "image" && item.url);
 
-    // filter only images
-    const images = items.filter(item =>
-      item.media_type === "image" && item.url
-    );
-
+    // FALLBACK IF EMPTY
     if (images.length === 0) {
-      gallery.innerHTML = `<p class="loading">No images found for this date range. Try different dates.</p>`;
+      gallery.innerHTML = `
+        <p class="loading">
+          No images found for this range.<br>
+          Try different dates.
+        </p>
+      `;
       return;
     }
 
@@ -64,7 +70,13 @@ async function fetchNASA(start, end) {
 
   } catch (err) {
     console.error(err);
-    gallery.innerHTML = `<p class="loading">Network error loading NASA data.</p>`;
+
+    gallery.innerHTML = `
+      <p class="loading">
+        Something went wrong loading NASA data.<br>
+        Please try again.
+      </p>
+    `;
   }
 }
 
