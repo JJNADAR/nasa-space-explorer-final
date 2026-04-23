@@ -10,7 +10,7 @@ function showLoading() {
   gallery.innerHTML = `<p class="loading">Loading space images...</p>`;
 }
 
-/* Fact */
+/* Random fact */
 function showFact() {
   const facts = [
     "One day on Venus is longer than one year on Venus.",
@@ -31,7 +31,7 @@ function showFact() {
   gallery.prepend(factBox);
 }
 
-/* Fetch NASA */
+/* Fetch NASA data */
 async function fetchNASA(start, end) {
   try {
     showLoading();
@@ -45,7 +45,10 @@ async function fetchNASA(start, end) {
 
     const items = Array.isArray(data) ? data : [data];
 
-    renderGallery(items);
+    // only keep images (avoids broken video entries)
+    const images = items.filter(item => item.media_type === "image");
+
+    renderGallery(images.slice(0, 9));
     showFact();
 
   } catch (err) {
@@ -62,15 +65,14 @@ function renderGallery(items) {
     const div = document.createElement("div");
     div.className = "card";
 
-    const media =
-      item.media_type === "video"
-        ? `<iframe src="${item.url}"></iframe>`
-        : `<img src="${item.url}" alt="${item.title}">`;
+    const img = item.url || "";
+    const title = item.title || "No title available";
+    const date = item.date || "";
 
     div.innerHTML = `
-      ${media}
-      <h3>${item.title}</h3>
-      <p>${item.date}</p>
+      <img src="${img}" alt="${title}">
+      <h3>${title}</h3>
+      <p>${date}</p>
     `;
 
     gallery.appendChild(div);
