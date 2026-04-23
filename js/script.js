@@ -1,6 +1,5 @@
 const API_KEY = "DEMO_KEY";
 
-// DOM elements
 const gallery = document.getElementById("gallery");
 const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
@@ -29,37 +28,33 @@ function showFact() {
   gallery.prepend(factBox);
 }
 
-// ---------------- FETCH NASA (FIXED) ----------------
+// ---------------- FETCH NASA (SIMPLE + RELIABLE) ----------------
 async function fetchNASA(start, end) {
   try {
     showLoading();
 
-    const startDate = new Date(start);
-    const endDate = new Date(end);
+    const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&start_date=${start}&end_date=${end}`;
 
-    const results = [];
+    const res = await fetch(url);
+    const data = await res.json();
 
-    // fetch each day individually (fixes empty-range bug)
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const date = d.toISOString().split("T")[0];
+    console.log("NASA response:", data);
 
-      const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&date=${date}`;
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      // only keep valid images
-      if (data && data.media_type === "image" && data.url) {
-        results.push(data);
-      }
-    }
-
-    if (results.length === 0) {
-      gallery.innerHTML = `<p class="loading">No images found. Try a different date range.</p>`;
+    if (!Array.isArray(data)) {
+      gallery.innerHTML = `<p class="loading">NASA returned unexpected data. Try different dates.</p>`;
       return;
     }
 
-    renderGallery(results.slice(0, 9));
+    const images = data.filter(item =>
+      item.media_type === "image" && item.url
+    );
+
+    if (images.length === 0) {
+      gallery.innerHTML = `<p class="loading">No images found. Try another date range.</p>`;
+      return;
+    }
+
+    renderGallery(images.slice(0, 9));
     showFact();
 
   } catch (err) {
@@ -72,7 +67,7 @@ async function fetchNASA(start, end) {
 function renderGallery(items) {
   gallery.innerHTML = "";
 
-  items.forEach((item) => {
+  items.forEach(item => {
     const div = document.createElement("div");
     div.className = "gallery-item";
 
@@ -99,7 +94,7 @@ function openModal(item) {
       <span class="close-modal">&times;</span>
       <h2>${item.title}</h2>
       <p>${item.date}</p>
-      <img src="${item.url}" />
+      <img src="${item.url}">
       <p>${item.explanation}</p>
     </div>
   `;
@@ -109,7 +104,7 @@ function openModal(item) {
   document.body.appendChild(modal);
 }
 
-// ---------------- BUTTON CLICK ----------------
+// ---------------- BUTTON ----------------
 button.addEventListener("click", () => {
   const start = startDateInput.value;
   const end = endDateInput.value;
