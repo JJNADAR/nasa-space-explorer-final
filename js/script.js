@@ -1,129 +1,111 @@
-// =====input setuo for date =====
-const startInput = document.getElementById("startDate");
-const endInput = document.getElementById("endDate");
-const button = document.querySelector("button");
+const API_KEY = "DEMO_KEY";
+
 const gallery = document.getElementById("gallery");
+const startDateInput = document.getElementById("startDate");
+const endDateInput = document.getElementById("endDate");
+const button = document.querySelector("button");
 
-setupDateInputs(startInput, endInput);
-
-// ===== just gonna use demo key cause i dont have one =====
-const API_KEY = "DEMO_KEY"; 
-
-// ===== a random space fact here (leveluppp) =====
-const facts = [
-  "A day on Venus is longer than a year on Venus.",
-  "Neutron stars can spin 600 times per second.",
-  "There are more stars in the universe than grains of sand on Earth.",
-  "Jupiter has the shortest day of all planets.",
-  "Black holes can slow down time.",
-  "The Milky Way is over 100,000 light-years wide."
-];
-
-function showRandomFact() {
-  const fact = facts[Math.floor(Math.random() * facts.length)];
-
-  const factBox = document.createElement("div");
-  factBox.className = "space-fact";
-  factBox.innerHTML = `🌌 <strong>Did You Know?</strong> ${fact}`;
-
-  document.querySelector(".container").insertBefore(factBox, gallery);
+// loading state
+function showLoading() {
+  gallery.innerHTML = `
+    <div class="placeholder">
+      <p>🔄 Loading space photos...</p>
+    </div>
+  `;
 }
 
-showRandomFact();
+// random fact (LevelUp)
+function showFact() {
+  const facts = [
+    "One day on Venus is longer than one year on Venus.",
+    "Neutron stars can spin 600 times per second.",
+    "There are more stars in the universe than grains of sand on Earth.",
+    "A spoonful of a neutron star would weigh billions of tons."
+  ];
 
-// ===== get apod data =====
-button.addEventListener("click", async () => {
-  const startDate = startInput.value;
-  const endDate = endInput.value;
+  const fact = facts[Math.floor(Math.random() * facts.length)];
 
-  if (!startDate || !endDate) return;
+  const box = document.createElement("div");
+  box.className = "gallery-item";
+  box.innerHTML = `
+    <p><strong>Did You Know?</strong></p>
+    <p>${fact}</p>
+  `;
 
-  gallery.innerHTML = `<div class="loading">🔄 Loading space photos...</div>`;
+  gallery.prepend(box);
+}
 
+// fetch NASA data
+async function fetchNASA(start, end) {
   try {
-    const res = await fetch(
-      `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&start_date=${startDate}&end_date=${endDate}`
-    );
+    showLoading();
 
+    const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&start_date=${start}&end_date=${end}`;
+    const res = await fetch(url);
     const data = await res.json();
 
-    displayGallery(data.reverse()); // newest first
-  } catch (err) {
-    gallery.innerHTML = `<p>Error loading images.</p>`;
-  }
-});
+    const items = Array.isArray(data) ? data : [data];
 
-// ===== gallleryyyy =====
-function displayGallery(items) {
+    renderGallery(items.slice(0, 9));
+    showFact();
+
+  } catch (err) {
+    console.error(err);
+    gallery.innerHTML = `<p>Failed to load NASA data.</p>`;
+  }
+}
+
+// render gallery
+function renderGallery(items) {
   gallery.innerHTML = "";
 
   items.forEach((item) => {
-    const card = document.createElement("div");
-    card.className = "gallery-item";
+    if (item.media_type !== "image") return;
 
-    // handle images vs videos (levleuppp)
-    if (item.media_type === "image") {
-      card.innerHTML = `
-        <img src="${item.url}" alt="${item.title}">
-        <p><strong>${item.title}</strong></p>
-        <p>${item.date}</p>
-      `;
-    } else if (item.media_type === "video") {
-      card.innerHTML = `
-        <iframe src="${item.url}" allowfullscreen></iframe>
-        <p><strong>${item.title}</strong></p>
-        <p>${item.date}</p>
-      `;
-    }
+    const div = document.createElement("div");
+    div.className = "gallery-item";
 
-    // model click
-    card.addEventListener("click", () => openModal(item));
+    div.innerHTML = `
+      <img src="${item.url}" alt="${item.title}" />
+      <p><strong>${item.title}</strong></p>
+      <p>${item.date}</p>
+    `;
 
-    gallery.appendChild(card);
+    div.addEventListener("click", () => openModal(item));
+
+    gallery.appendChild(div);
   });
 }
 
-// ===== modal =====
-const modal = document.createElement("div");
-modal.className = "modal";
-modal.innerHTML = `
-  <div class="modal-content">
-    <span class="close-modal">&times;</span>
-    <div id="modalBody"></div>
-  </div>
-`;
-
-document.body.appendChild(modal);
-
-const modalBody = document.getElementById("modalBody");
-
+// modal
 function openModal(item) {
-  modal.style.display = "flex";
+  const modal = document.createElement("div");
+  modal.className = "modal";
 
-  if (item.media_type === "image") {
-    modalBody.innerHTML = `
+  modal.innerHTML = `
+    <div class="modal-content">
+      <span class="close">&times;</span>
       <h2>${item.title}</h2>
       <p>${item.date}</p>
-      <img src="${item.hdurl || item.url}">
-      <p>${item.explanation}</p>
-    `;
-  } else {
-    modalBody.innerHTML = `
-      <h2>${item.title}</h2>
-      <p>${item.date}</p>
-      <iframe src="${item.url}" allowfullscreen></iframe>
-      <p>${item.explanation}</p>
-    `;
-  }
+      <img src="${item.url}" style="max-width:100%; margin-top:10px;" />
+      <p style="margin-top:10px;">${item.explanation}</p>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  modal.querySelector(".close").onclick = () => modal.remove();
 }
 
-// close modal
-document.querySelector(".close-modal").onclick = () => {
-  modal.style.display = "none";
-};
+// button click
+button.addEventListener("click", () => {
+  const start = startDateInput.value;
+  const end = endDateInput.value;
 
-window.onclick = (e) => {
-  if (e.target === modal) {
-    modal.style.display = "none";
+  if (!start || !end) {
+    alert("Please select both dates");
+    return;
   }
-};
+
+  fetchNASA(start, end);
+});
